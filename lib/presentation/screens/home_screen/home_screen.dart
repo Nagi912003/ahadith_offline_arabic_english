@@ -68,9 +68,9 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _pageController,
             onPageChanged: _onPageChanged,
             children: const [
-              AllHadithScreen(),
-              DailyHadithScreen(),
               EveryDailyHadithScreen(),
+              DailyHadithScreen(),
+              AllHadithScreen(),
             ],
           ),
         ],

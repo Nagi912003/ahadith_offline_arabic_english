@@ -5,10 +5,21 @@ class DailyHadithScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Center(
-        child: Text('daily Hadith Screen'),
+      body: Column(
+        // mainAxisAlignment: MainAxisAlignment.center,
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Spacer(flex: 1),
+          Center(
+            child: Text(
+                  'Daily Hadith Screen',
+                  style: Theme.of(context).textTheme.headline4,
+                ),
+          ),
+          const Spacer(flex: 1),
+        ],
       ),
     );
   }
