@@ -1,104 +1,93 @@
 import 'package:ahadith_offline_arabic_english/constants/all_ahadith.dart';
+import 'package:ahadith_offline_arabic_english/theme/theme_manager.dart';
+import 'package:ahadith_offline_arabic_english/business_logic/search_algorithm/search_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
-class AllHadithScreen extends StatelessWidget {
-  const AllHadithScreen({super.key});
+class AllHadithScreen extends StatefulWidget {
+  AllHadithScreen({super.key, required this.themeManager});
+  ThemeManager themeManager = ThemeManager();
+
+  @override
+  State<AllHadithScreen> createState() => _AllHadithScreenState();
+}
+
+class _AllHadithScreenState extends State<AllHadithScreen> {
+  List<Map<String, dynamic>> Ahadith = allAhadith; // Your data source
+  bool isSearching = false;
 
   @override
   Widget build(BuildContext context) {
+    final searchController = Provider.of<SearchProvider>(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: TextField(
+          onChanged: (value) {
+            if(value.isNotEmpty){
+              setState(() {
+                isSearching = true;
+                Ahadith = searchController.searchByHadeeth(value, widget.themeManager.lang);
+              });
+            } else {
+              setState(() {
+                isSearching = false;
+                Ahadith = allAhadith;
+              });
+            }
+          },
+          decoration: InputDecoration(
+            hintText: widget.themeManager.lang == 'ar'? 'البحث...':'Search...',
+            hintStyle: const TextStyle(
+              color: Colors.white,
+            ),
+            hintTextDirection: widget.themeManager.lang == 'ar'
+                ? TextDirection.rtl
+                : TextDirection.ltr,
+            prefixIcon: Icon(
+              Icons.search,
+              color: widget.themeManager.appPrimaryColor,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.r),
+              borderSide: BorderSide(
+                color: widget.themeManager.appPrimaryColor200,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.r),
+              borderSide: BorderSide(
+                color: widget.themeManager.appPrimaryColor,
+              ),
+            ),
+          ),
+          cursorColor: widget.themeManager.appPrimaryColorInverse,
+          textDirection: widget.themeManager.lang == 'ar'
+              ? TextDirection.rtl
+              : TextDirection.ltr,
+        ),
+        elevation: 0,
+      ),
       body: ListView.builder(
-
         shrinkWrap: true,
         // physics: const NeverScrollableScrollPhysics(),
-        itemCount: allAhadith.length,
+        itemCount: Ahadith.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text('Hadith ${allAhadith[index]['id']}  $index'),
+          return Card(
+            child: ListTile(
+              title: Text(
+                Ahadith[index]
+                    [widget.themeManager.lang == 'ar' ? 'title_ar' : 'title'],
+                style: const TextStyle(fontSize: 20),
+                textDirection: widget.themeManager.lang == 'ar'
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
+              ),
+            ),
           );
         },
       ),
     );
   }
 }
-//-----------------------------------------------------------------------------------------------------------------
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     backgroundColor: Colors.transparent,
-  //     body: SingleChildScrollView(
-  //       child:Column(
-  //         children:
-  //           allAhadith.map((e) => ListTile(
-  //             title: Text('${e['id']}'),
-  //           )).toList(),
-  //
-  //       ),
-  //     ),
-  //   );
-  // }
-// }
-
-//-----------------------------------------------------------------------------------------------------------------
-//
-// import 'package:flutter/material.dart';
-//
-// class AllHadithScreen extends StatefulWidget {
-//   const AllHadithScreen({Key? key}) : super(key: key);
-//
-//   @override
-//   _AllHadithScreenState createState() => _AllHadithScreenState();
-// }
-//
-// class _AllHadithScreenState extends State<AllHadithScreen> {
-//   List<Map<String, dynamic>> allAhadith = Ahadith.allAhadith; // Your data source
-//   int itemsPerPage = 20; // Number of items to load per page
-//   int currentPage = 1; // Current page number
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.transparent,
-//       body: ListView.builder(
-//         itemCount: allAhadith.length + 1, // Add 1 for the loading indicator
-//         itemBuilder: (context, index) {
-//           if (index < allAhadith.length) {
-//             return ListTile(
-//               title: Text('Hadith ${allAhadith[index]['id']}  $index'),
-//             );
-//           } else {
-//             // Reached the end, show loading indicator
-//             return _buildLoadingIndicator();
-//           }
-//         },
-//       ),
-//     );
-//   }
-//
-//   Widget _buildLoadingIndicator() {
-//     return Center(
-//       child: CircularProgressIndicator(),
-//     );
-//   }
-//
-//   // Simulate loading more data (replace with your actual data fetching logic)
-//   Future<void> _loadMoreData() async {
-//     // Simulate a delay to represent fetching data from an API
-//     await Future.delayed(Duration(seconds: 2));
-//
-//     // Fetch more data and append it to the existing list
-//     List<Map<String, dynamic>> moreData = []; // Fetch your additional data
-//     allAhadith.addAll(moreData);
-//
-//     // Update the UI to reflect the new data
-//     setState(() {});
-//   }
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     // Initial data loading
-//     _loadMoreData();
-//   }
-// }

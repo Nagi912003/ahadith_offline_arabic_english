@@ -1,3 +1,5 @@
+import 'package:ahadith_offline_arabic_english/business_logic/search_algorithm/search_controller.dart';
+
 import '/presentation/screens/home_screen/home_screen.dart';
 import '/theme/theme_constants.dart';
 import '/theme/theme_manager.dart';
@@ -9,15 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-// import 'presentation/routes/app_router.dart';
 
-// import 'data/data_providers/favorites_and_saved_provider/favorites_and_saved.dart';
-
-
-
-
-void main() async{
-
+void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
@@ -32,11 +27,15 @@ void main() async{
   // await Hive.box('saved').clear();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-  flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()?.requestExactAlarmsPermission();
-  flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+      FlutterLocalNotificationsPlugin();
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestExactAlarmsPermission();
+  flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
 
   runApp(const MyApp());
 
@@ -59,7 +58,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   @override
   void dispose() {
     _themeManager.removeListener(themeListener);
@@ -72,12 +70,11 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-  themeListener(){
-    if(mounted){
+  themeListener() {
+    if (mounted) {
       setState(() {});
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -87,26 +84,22 @@ class _MyAppState extends State<MyApp> {
         minTextAdapt: true,
         splitScreenMode: true,
         builder: (context, child) {
-          return
-            // MultiProvider(
-            // providers: [
-            //   ChangeNotifierProvider(
-            //     create: (context) => FavoritesAndSavedProvider(),
-            //   ),
-            // ],
-            // child:
-            MaterialApp(
-              debugShowCheckedModeBanner: false,
+          return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (context) => SearchProvider(),
+                ),
+              ],
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
 
-              darkTheme: darkTheme(_themeManager),
+                darkTheme: darkTheme(_themeManager),
 
-              themeMode: ThemeMode.dark,
+                themeMode: ThemeMode.dark,
 
-              home: MyHomePage(themeManager: _themeManager),
-              // onGenerateRoute: AppRouter().generateRoute,
-            )
-          // )
-          ;
+                home: MyHomePage(themeManager: _themeManager),
+                // onGenerateRoute: AppRouter().generateRoute,
+              ));
         });
   }
 }

@@ -1,6 +1,8 @@
+import 'package:ahadith_offline_arabic_english/business_logic/search_algorithm/search_controller.dart';
 import 'package:ahadith_offline_arabic_english/theme/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import '../../../helpers/notification_service.dart';
 import '../all_hadith_screen/all_hadith_screen.dart';
@@ -23,6 +25,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
+    Provider.of<SearchProvider>(context, listen: false)
+        .buildInvertedIndex();
+    Map<dynamic, dynamic> dailyHadith = Provider.of<SearchProvider>(context, listen: false).dailyHadith;
     notificationsServices.initialiseNotifications();
     super.initState();
   }
@@ -55,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: BlurredContainer(
               child: SizedBox(
                 // color: Colors.black,
-                height: MediaQuery.of(context).size.height*0.85,
+                height: MediaQuery.of(context).size.height * 0.85,
                 width: MediaQuery.of(context).size.width,
                 child: Image.asset(
                   widget.themeManager.bgImage,
@@ -67,10 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
           PageView(
             controller: _pageController,
             onPageChanged: _onPageChanged,
-            children: const [
+            children: [
               EveryDailyHadithScreen(),
               DailyHadithScreen(),
-              AllHadithScreen(),
+              AllHadithScreen(
+                themeManager: widget.themeManager,
+              ),
             ],
           ),
         ],
@@ -81,22 +88,25 @@ class _MyHomePageState extends State<MyHomePage> {
         onTap: _onNavItemTapped,
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt,
+            icon: Icon(
+              Icons.list_alt,
               color: widget.themeManager.appPrimaryColor,
             ),
-            label: 'Every Daily Hadith',
+            label: widget.themeManager.lang == 'ar' ? 'الأحاديث اليومية السابقة' :'Every Daily Hadith',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shuffle,
+            icon: Icon(
+              Icons.shuffle,
               color: widget.themeManager.appPrimaryColor,
             ),
-            label: 'Daily Hadith',
+            label: widget.themeManager.lang == 'ar' ? 'الحديث اليومي' :'Daily Hadith',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list,
+            icon: Icon(
+              Icons.list,
               color: widget.themeManager.appPrimaryColor,
             ),
-            label: 'All Hadith',
+            label: widget.themeManager.lang == 'ar' ? 'موسوعه الاحاديث' :'All Ahadith',
           ),
         ],
       ),
@@ -125,13 +135,54 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Card(
             child: ListTile(
-              trailing: Icon(
-                Icons.language,
-                color: widget.themeManager.appPrimaryColor200,
-                size: 30.sp,
+              trailing: DropdownButton<String>(
+                iconDisabledColor: widget.themeManager.appPrimaryColor200,
+                iconEnabledColor: widget.themeManager.appPrimaryColor,
+                borderRadius: BorderRadius.circular(10),
+                isDense: true,
+                items: [
+                  DropdownMenuItem(
+                    value: 'ar',
+                    child: Text(
+                      'العربية',
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        color: Theme.of(context).textTheme.bodySmall!.color,
+                      ),
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: 'en',
+                    child: Text(
+                      'English',
+                      style: TextStyle(
+                        fontSize: 20.sp,
+                        color: Theme.of(context).textTheme.bodySmall!.color,
+                      ),
+                    ),
+                  ),
+                ],
+                value: widget.themeManager.lang,
+                icon: Icon(
+                  Icons.language,
+                  color: widget.themeManager.appPrimaryColor200,
+                ),
+                iconSize: 24,
+                elevation: 16,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  color: Theme.of(context).textTheme.bodySmall!.color,
+                ),
+                underline: const SizedBox(height: 0),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    widget.themeManager.lang = newValue!;
+                    widget.themeManager.toggleLang(newValue);
+                  });
+                },
               ),
               title: Text(
-                'اللغة',
+                widget.themeManager.lang == 'ar' ? 'اللغة' : 'Language',
                 style: TextStyle(
                   fontSize: 20.sp,
                   color: Theme.of(context).textTheme.bodySmall!.color,
@@ -142,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Card(
             child: ListTile(
               title: Text(
-                'حجم الخط',
+                widget.themeManager.lang == 'ar' ? 'حجم الخط' : 'Font Size',
                 style: TextStyle(
                   fontSize: 20.sp,
                   color: Theme.of(context).textTheme.bodySmall!.color,
@@ -175,9 +226,10 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               onPressed: () {
                 NotificationsServices notificationsServices =
-                NotificationsServices();
+                    NotificationsServices();
                 // notificationsServices.sendNotification('حديث اليوم', 'لا تنسى أذكار الصباح و المساء');
-                notificationsServices.sendNotification('حديث اليوم', 'صل على نبينا محمد - \nلا تنسى أذكار الصباح و المساء');
+                notificationsServices.sendNotification('حديث اليوم',
+                    'صل على نبينا محمد - \nلا تنسى أذكار الصباح و المساء');
               },
             ),
             onTap: null,
@@ -215,36 +267,38 @@ class _MyHomePageState extends State<MyHomePage> {
             //     color: Theme.of(context).textTheme.bodySmall!.color,
             //   ),
             // ),
+            _buildAppBarActions(),
             const Spacer(),
             Text(
               'أَحَادِيـــثٌ',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(width: 10),
-            _buildAppBarActions(),
           ],
         ),
       ),
     );
   }
+
   Widget _buildAppBarActions() {
     return Row(
       children: [
-        IconButton(
-          icon: Icon(
-            Icons.search,
-            color: widget.themeManager.appPrimaryColor,
-          ),
-          onPressed: () {
-            _onPageChanged(2);
-            _pageController.animateToPage(
-              2,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-            /// showSearch ...
-          },
-        ),
+        // IconButton(
+        //   icon: Icon(
+        //     Icons.search,
+        //     color: widget.themeManager.appPrimaryColor,
+        //   ),
+        //   onPressed: () {
+        //     _onPageChanged(2);
+        //     _pageController.animateToPage(
+        //       2,
+        //       duration: const Duration(milliseconds: 300),
+        //       curve: Curves.easeInOut,
+        //     );
+        //
+        //     /// showSearch ...
+        //   },
+        // ),
         DropdownButton<int>(
           iconDisabledColor: widget.themeManager.appPrimaryColor,
           iconEnabledColor: widget.themeManager.appPrimaryColor,

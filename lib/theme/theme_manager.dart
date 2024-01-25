@@ -17,6 +17,11 @@ class ThemeManager with ChangeNotifier {
     } else {
       toggleFontSize(double.parse(_savedBox.get('themeFontSize').toString()));
     }
+    if (!_savedBox.containsKey('lang')) {
+      _savedBox.put('lang', 'ar');
+    } else {
+      toggleLang(_savedBox.get('lang').toString());
+    }
   }
 
   static final ThemeManager _instance = ThemeManager._private();
@@ -27,6 +32,7 @@ class ThemeManager with ChangeNotifier {
 
   String bgImage = 'assets/images/watercolor.png';
   int mode = 1;
+  String lang = 'ar';
   double fontSize = 0;
   double addedFontSize = 0;
   Color appPrimaryColor = Colors.deepPurple;
@@ -197,6 +203,12 @@ class ThemeManager with ChangeNotifier {
         this.fontSize = 0;
         addedFontSize = 0;
     }
+    notifyListeners();
+  }
+
+  void toggleLang(String lang) {
+    _savedBox.put('lang', lang);
+    this.lang = lang;
     notifyListeners();
   }
 }
