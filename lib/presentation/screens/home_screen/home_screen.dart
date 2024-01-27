@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/notification_service.dart';
-import '../all_hadith_screen/all_hadith_screen.dart';
+// import '../all_hadith_screen/all_hadith_screen.dart';
 import '../every_daily_hadith_screen/every_daily_hadith_screen.dart';
 import '../daily_hadith_screen/daily_hadith_screen.dart';
 import 'widgets/blurred_container.dart';
@@ -25,9 +25,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    Provider.of<SearchProvider>(context, listen: false)
-        .buildInvertedIndex();
-    Map<dynamic, dynamic> dailyHadith = Provider.of<SearchProvider>(context, listen: false).dailyHadith;
+    // Provider.of<SearchProvider>(context, listen: false)
+    //     .buildInvertedIndex();
+    // Provider.of<SearchProvider>(context, listen: false).dailyHadith;
     notificationsServices.initialiseNotifications();
     super.initState();
   }
@@ -40,6 +40,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Map<dynamic, dynamic> dailyHadith =
+        Provider.of<SearchProvider>(context, listen: false).dailyHadith;
+    final List<Map<String, dynamic>> dailyAhadith =
+        Provider.of<SearchProvider>(context, listen: false).dailyAhadith;
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
@@ -73,11 +77,19 @@ class _MyHomePageState extends State<MyHomePage> {
             controller: _pageController,
             onPageChanged: _onPageChanged,
             children: [
-              EveryDailyHadithScreen(),
-              DailyHadithScreen(),
-              AllHadithScreen(
+              EveryDailyHadithScreen(
+                dailyAhadith: dailyAhadith,
                 themeManager: widget.themeManager,
+                showHadithDetailsFunction: _showDialog,
               ),
+              DailyHadithScreen(
+                dailyHadith: dailyHadith,
+                themeManager: widget.themeManager,
+                showHadithDetailsFunction: _showDialog,
+              ),
+              // AllHadithScreen(
+              //   themeManager: widget.themeManager,
+              // ),
             ],
           ),
         ],
@@ -92,22 +104,26 @@ class _MyHomePageState extends State<MyHomePage> {
               Icons.list_alt,
               color: widget.themeManager.appPrimaryColor,
             ),
-            label: widget.themeManager.lang == 'ar' ? 'الأحاديث اليومية السابقة' :'Every Daily Hadith',
+            label: widget.themeManager.lang == 'ar'
+                ? 'الأحاديث اليومية السابقة'
+                : 'Every Daily Hadith',
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.shuffle,
               color: widget.themeManager.appPrimaryColor,
             ),
-            label: widget.themeManager.lang == 'ar' ? 'الحديث اليومي' :'Daily Hadith',
+            label: widget.themeManager.lang == 'ar'
+                ? 'الحديث اليومي'
+                : 'Daily Hadith',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.list,
-              color: widget.themeManager.appPrimaryColor,
-            ),
-            label: widget.themeManager.lang == 'ar' ? 'موسوعه الاحاديث' :'All Ahadith',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(
+          //     Icons.list,
+          //     color: widget.themeManager.appPrimaryColor,
+          //   ),
+          //   label: widget.themeManager.lang == 'ar' ? 'موسوعه الاحاديث' :'All Ahadith',
+          // ),
         ],
       ),
       drawer: Drawer(
@@ -260,13 +276,6 @@ class _MyHomePageState extends State<MyHomePage> {
         width: 0.75.sw,
         child: Row(
           children: [
-            // Text(
-            //   HijriCalendar.now().toFormat('dd MMMM yyyy'),
-            //   style: TextStyle(
-            //     fontSize: 18.sp,
-            //     color: Theme.of(context).textTheme.bodySmall!.color,
-            //   ),
-            // ),
             _buildAppBarActions(),
             const Spacer(),
             Text(
@@ -283,22 +292,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildAppBarActions() {
     return Row(
       children: [
-        // IconButton(
-        //   icon: Icon(
-        //     Icons.search,
-        //     color: widget.themeManager.appPrimaryColor,
-        //   ),
-        //   onPressed: () {
-        //     _onPageChanged(2);
-        //     _pageController.animateToPage(
-        //       2,
-        //       duration: const Duration(milliseconds: 300),
-        //       curve: Curves.easeInOut,
-        //     );
-        //
-        //     /// showSearch ...
-        //   },
-        // ),
         DropdownButton<int>(
           iconDisabledColor: widget.themeManager.appPrimaryColor,
           iconEnabledColor: widget.themeManager.appPrimaryColor,
@@ -375,6 +368,141 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
       ],
+    );
+  }
+
+  void _showDialog(Map<dynamic, dynamic> hadith) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        titlePadding: EdgeInsets.all(8),
+        actionsPadding: EdgeInsets.all(8),
+        scrollable: true,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              widget.themeManager.lang=='ar'?'الرجوع':'hide',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+        title: widget.themeManager.lang=='ar'? buildCard('', hadith['hadith_text_ar'] + hadith['takhrij_ar'],
+            true, context, widget.themeManager):buildCard('', hadith['hadith_text'] + hadith['takhrij'],
+            true, context, widget.themeManager),
+        content: Column(
+          children: [
+            widget.themeManager.lang=='ar'?hadithGrade(hadith['grade_ar'], context, widget.themeManager,
+                fullScreen: false):hadithGrade(hadith['grade'], context, widget.themeManager,
+                fullScreen: false),
+            SizedBox(height: 10.h),
+            widget.themeManager.lang=='ar'?buildCard('التفسير : ', hadith['explanation_ar'], false, context,
+                widget.themeManager):buildCard('explanation : ', hadith['explanation'], false, context,
+                widget.themeManager),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildCard(String title, String content, bool isHadith,
+      BuildContext context, ThemeManager themeManager) {
+    return Card(
+      color: isHadith
+          ? themeManager.appPrimaryColor200
+          : Theme.of(context).cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: RichText(
+          textDirection: themeManager.lang=='ar'?TextDirection.rtl:TextDirection.ltr,
+          textAlign: TextAlign.end,
+          text: WidgetSpan(
+            child: SelectableText.rich(
+              textDirection: themeManager.lang=='ar'?TextDirection.rtl:TextDirection.ltr ,
+              TextSpan(
+                text: title,
+                style: TextStyle(
+                  fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                  fontSize: Theme.of(context).textTheme.bodySmall!.fontSize! +
+                      themeManager.fontSize +
+                      2,
+                  fontWeight: FontWeight.bold,
+                  color: themeManager.appPrimaryColor200,
+                ),
+                children: [
+                  WidgetSpan(
+                    child: SelectableText.rich(
+                      textDirection: themeManager.lang=='ar'?TextDirection.rtl:TextDirection.ltr ,
+                      TextSpan(
+                        text: content,
+                        style: TextStyle(
+                          fontFamily: isHadith
+                              ? Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.fontFamily
+                              : Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.fontFamily,
+                          fontSize: isHadith
+                              ? 18.sp + themeManager.fontSize + 2
+                              : 19.sp + themeManager.fontSize + 2,
+                          fontWeight:
+                              isHadith ? FontWeight.bold : FontWeight.normal,
+                          color: isHadith
+                              ? Colors.black
+                              : Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color, //isHadith ? Colors.black : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget hadithGrade(
+      String hadithGrade, BuildContext context, ThemeManager themeManager,
+      {bool fullScreen = true}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      child: Row(
+        mainAxisAlignment: themeManager.lang=='ar'?MainAxisAlignment.end:MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            // width: themeManager.lang=='ar'? 200.w : 263.w,
+            child: Text(
+              hadithGrade,
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
+                color: themeManager.appPrimaryColor200,
+                overflow: TextOverflow.clip,
+              ),
+              textAlign: themeManager.lang=='ar'?TextAlign.end:TextAlign.start ,
+            ),
+          ),
+          Text(
+            themeManager.lang=='ar'?' حديث': '',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
